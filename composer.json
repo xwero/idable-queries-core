@@ -1,0 +1,35 @@
+{
+  "name": "xwero/idable-queries-core",
+  "description": "base package for Idable queries libraries",
+  "type": "library",
+  "license": "mit",
+  "version": "0.1.0",
+  "autoload": {
+    "psr-4": {
+      "Xwero\\IdableQueriesCore\\": "src/"
+    },
+    "files": [
+      "src/functions.php"
+    ]
+  },
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=8.4"
+  },
+  "require-dev": {
+    "pestphp/pest": "4.x-dev"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Test\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "scripts": {
+    "tests": "XDEBUG_MODE=coverage ./vendor/bin/pest"
+  }
+}
