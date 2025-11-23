@@ -28,7 +28,7 @@ test('alias map', function () {
     $map = buildLevelMap(
         ['cname' => 'John Doe'],
         new PlaceholderIdentifierCollection(new PlaceholderIdentifier('~Users:Name', Users::Name)),
-        new AliasCollection('cname', Users::Name),
+        new AliasCollection()->add('cname', Users::Name),
     );
 
     expect($map[Users::Name])->toBe('John Doe');

@@ -43,10 +43,14 @@ function addIdableParameters(
     return str_replace($search, $replacements, $query);
 }
 
-function buildAliasMap(array|Error $data, AliasCollection $aliases): Map|Error
+function buildAliasMap(array|Error $data, AliasCollection|Error $aliases): Map|Error
 {
     if ($data instanceof Error) {
         return $data;
+    }
+
+    if($aliases instanceof Error) {
+        return $aliases;
     }
 
     if (array_all(array_keys($data), fn($i) => is_string($i)) == false) {
@@ -57,21 +61,17 @@ function buildAliasMap(array|Error $data, AliasCollection $aliases): Map|Error
         return new Error(new InvalidArgumentException("The alias collection must have items."));
     }
 
-    $map = new Map();
-
-    foreach($data as $possibleAlias => $value) {
-        if($identifier = $aliases->getIdentifier($possibleAlias)) {
-            $map[$identifier] = $value;
-        }
-    }
-
-    return $map;
+    return fillMapWithAliases(new Map(), $data, $aliases);
 }
 
-function buildAliasesMapCollection(array|Error $data, AliasCollection $aliases): MapCollection|Error
+function buildAliasesMapCollection(array|Error $data, AliasCollection|Error $aliases): MapCollection|Error
 {
     if ($data instanceof Error) {
         return $data;
+    }
+
+    if($aliases instanceof Error) {
+        return $aliases;
     }
 
     if (array_all(array_keys($data), fn($item) => is_int($item)) == false) {
@@ -95,18 +95,26 @@ function buildAliasesMapCollection(array|Error $data, AliasCollection $aliases):
             return $map;
         }
 
-        $collection->add($map);
+        $collection->addMap($map);
     }
 
     return $collection;
 }
 
 function buildLevelMap(
-    array                           $data,
+    array|Error                           $data,
     PlaceHolderIdentifierCollection $placeholders,
-    AliasCollection|null            $aliases = null,
+    AliasCollection|Error|null            $aliases = null,
 ): Map|Error
 {
+    if($data instanceof Error) {
+        return $data;
+    }
+
+    if($aliases instanceof Error) {
+        return $aliases;
+    }
+
     if (array_all(array_keys($data), fn($i) => is_string($i)) == false) {
         return new Error(new InvalidArgumentException("The data keys for the map need to be a strings."));
     }
@@ -125,11 +133,7 @@ function buildLevelMap(
     }
 
     if ($aliases instanceof AliasCollection) {
-        foreach ($data as $key => $value) {
-            if ($identifier = $aliases->getIdentifier($key)) {
-                $map[$identifier] = $value;
-            }
-        }
+        $map = fillMapWithAliases($map, $data, $aliases);
     }
 
     return $map;
@@ -166,7 +170,7 @@ function collectIdableParameters(
 
             $phi->value = $value;
 
-            $placeholderReplacements->add($phi);
+            $placeholderReplacements->addPlaceholderIdentifier($phi);
         }
     }
 
@@ -176,12 +180,16 @@ function collectIdableParameters(
 function createMapFromFirstLevelResults(
     array|Error                  $data,
     string                       $query,
-    AliasCollection|null         $aliases = null,
+    AliasCollection|Error|null         $aliases = null,
     BaseNamespaceCollection|null $namespaces = null,
 ): Map|Error
 {
     if ($data instanceof Error) {
         return $data;
+    }
+
+    if($aliases instanceof Error) {
+        return $aliases;
     }
 
     $placeholders = queryToPlaceholderIdentifierCollection($query, getIdentifierRegex(), $namespaces);
@@ -196,12 +204,16 @@ function createMapFromFirstLevelResults(
 function createMapFromSecondLevelResults(
     array|Error                  $data,
     string                       $query,
-    AliasCollection|null         $aliases = null,
+    AliasCollection|Error|null         $aliases = null,
     BaseNamespaceCollection|null $namespaces = null,
 ): MapCollection|Error
 {
     if ($data instanceof Error) {
         return $data;
+    }
+
+    if($aliases instanceof Error) {
+        return $aliases;
     }
 
     if (array_all(array_keys($data), fn($item) => is_int($item)) == false) {
@@ -232,19 +244,32 @@ function createMapFromSecondLevelResults(
         }
 
         if ($map->count() > 0) {
-            $collection->add($map);
+            $collection->addMap($map);
         }
     }
 
     return $collection;
 }
 
-function isIdableQuery(string $query): bool
+function fillMapWithAliases(Map $map, array $data, AliasCollection $aliases): Map
 {
-    preg_match_all(getIdentifierRegex(), $query, $DBMatches);
-    preg_match_all(getParameterRegex(), $query, $ParamMatches);
+    foreach ($data as $key => $value) {
+        /** @var Alias $alias */
+        $alias = $aliases->getAlias($key);
 
-    return (isset($DBMatches[0]) && count($DBMatches[0]) > 0) || (isset($ParamMatches[0]) && count($ParamMatches[0]) > 0);
+        if($alias instanceof Alias) {
+            if($alias->valueFilter === null) {
+                $map[$alias->identifier] = $value;
+                continue;
+            }
+
+            if(($alias->valueFilter)($value)) {
+                $map[$alias->identifier] = $value;
+            }
+        }
+    }
+
+    return $map;
 }
 
 function getIdentifierFromStrings(string $class, string $case): Identifier|null
@@ -287,6 +312,14 @@ function getParameterRegex(): string
     return is_string($regex) ? $regex : "(:[A-Za-z1-9\\\]+:[A-Za-z1-9]+)";
 }
 
+function isIdableQuery(string $query): bool
+{
+    preg_match_all(getIdentifierRegex(), $query, $DBMatches);
+    preg_match_all(getParameterRegex(), $query, $ParamMatches);
+
+    return (isset($DBMatches[0]) && count($DBMatches[0]) > 0) || (isset($ParamMatches[0]) && count($ParamMatches[0]) > 0);
+}
+
 function queryStringFromIdentifier(Identifier $identifier): string
 {
     return $identifier instanceof BackedEnum ? $identifier->value : strtolower($identifier->name);
@@ -322,7 +355,7 @@ function queryToPlaceholderIdentifierCollection(
             if (class_exists($pair[0])) {
                 $replacement = getIdentifierFromStrings($pair[0], $pair[1]);
                 if ($replacement instanceof Identifier) {
-                    $collection->add(new PlaceholderIdentifier($item, $replacement));
+                    $collection->add($item, $replacement);
                     continue;
                 }
             }
@@ -333,7 +366,7 @@ function queryToPlaceholderIdentifierCollection(
                     if (class_exists($possibleClass)) {
                         $replacement = getIdentifierFromStrings($possibleClass, $pair[1]);
                         if ($replacement instanceof Identifier) {
-                            $collection->add(new PlaceholderIdentifier($item, $replacement));
+                            $collection->add($item, $replacement);
                         }
                     }
                 }

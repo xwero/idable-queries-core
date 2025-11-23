@@ -29,13 +29,13 @@ test('returns Error', function (array|Error $data, AliasCollection $aliases) {
     ],
     'no string keys on second level' => [
         [['test']],
-        new AliasCollection('name', Users::Name),
+        new AliasCollection()->add('name', Users::Name),
     ]
 ]);
 
 test('happy path', function () {
    $data = [['name' => 'me', 'email' => 'email@test']];
-   $aliases = new AliasCollection('name', Users::Name, 'email', Users::Email);
+   $aliases = new AliasCollection()->add('name', Users::Name)->add('email', Users::Email);
    $mapCollection = buildAliasesMapCollection($data, $aliases);
 
    expect($mapCollection)->toBeInstanceOf(MapCollection::class)

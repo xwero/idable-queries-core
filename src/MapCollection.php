@@ -9,7 +9,7 @@ class MapCollection extends BaseCollection
         parent::__construct($items);
     }
 
-    public function add(Map $item): self
+    public function addMap(Map $item): self
     {
         $this->collection[] = $item;
 

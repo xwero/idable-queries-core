@@ -8,7 +8,7 @@ final readonly class QueryParameterCollection
 {
     public function __construct(
         public string $query,
-        public PlaceholderIdentifierCollection|NativeParameterCollectionInterface $parameters,
+        public PlaceholderIdentifierCollection $parameters,
     )
     {}
 }

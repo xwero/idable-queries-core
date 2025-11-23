@@ -20,7 +20,7 @@ function arrayTransformer(PlaceholderIdentifier $phi, array $value, string $plac
 
     foreach ($value as $v) {
         if ($counter == 0) {
-            $collection->add(new PlaceholderIdentifier(
+            $collection->addPlaceholderIdentifier(new PlaceholderIdentifier(
                     $phi->placeholder . $placeholderSeparator . $counter,
                     $phi->identifier,
                     value: $v,
@@ -33,7 +33,7 @@ function arrayTransformer(PlaceholderIdentifier $phi, array $value, string $plac
         }
 
         if ($counter == $count) {
-            $collection->add(new PlaceholderIdentifier(
+            $collection->addPlaceholderIdentifier(new PlaceholderIdentifier(
                     $phi->placeholder . $placeholderSeparator . $counter,
                     $phi->identifier,
                     value: $v,
@@ -44,7 +44,7 @@ function arrayTransformer(PlaceholderIdentifier $phi, array $value, string $plac
             continue;
         }
 
-        $collection->add(new PlaceholderIdentifier(
+        $collection->addPlaceholderIdentifier(new PlaceholderIdentifier(
                 $phi->placeholder . $placeholderSeparator . $counter,
                 $phi->identifier,
                 value: $v,

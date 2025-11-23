@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Xwero\IdableQueriesCore;
 
 use Closure;
+use Exception;
 
 class PlaceholderIdentifierCollection extends BaseCollection
 {
@@ -13,8 +14,31 @@ class PlaceholderIdentifierCollection extends BaseCollection
         parent::__construct($items);
     }
 
-    public function add(PlaceholderIdentifier $item) : self {
-        $this->collection[] = $item;
+    public static function createWithPlaceholderIdentifier(
+        string     $placeholder,
+        Identifier $identifier,
+        mixed      $value = null,
+        string     $prefix = '',
+        string     $suffix = '',
+    ): self
+    {
+        return new self()->add($placeholder, $identifier, $value, $prefix, $suffix);
+    }
+    public function add(
+        string     $placeholder,
+        Identifier $identifier,
+        mixed      $value = null,
+        string     $prefix = '',
+        string     $suffix = '',
+    ) : self {
+        $this->collection[] = new PlaceholderIdentifier($placeholder, $identifier, $value, $prefix, $suffix);
+
+        return $this;
+    }
+
+    public function addPlaceholderIdentifier(PlaceholderIdentifier $phi): self
+    {
+        $this->collection[] = $phi;
 
         return $this;
     }

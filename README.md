@@ -58,8 +58,9 @@ Used by the database system packages.
 
 ### buildAliasMap
 
-This function gives full control over the creation of a `Map` instance. The data needs to be an associate array.
-A `Map` has `Identifier` instances as keys, which makes it less likely to make typos when accessing the data.
+This function allows full control over the creation of a `Map` instance. 
+The data needs to be an associate array.
+
 
 used by `buildAliasMapCollection`
 
@@ -93,6 +94,10 @@ When the query returns multiple items use this function to create a `MapCollecti
 
 Used by the database system packages.
 
+### fillMapWithAliases
+
+A helper method for `buildAliasMap` and `buildLevelMap` to add data to the `Map` based on the added aliases.
+
 ### getIdentifierFromStrings
 
 This function accepts the class and case as a string and insures the return is either `null` or an identifier.
@@ -111,6 +116,10 @@ This function gets the default regex or a custom one from the `IDENTIFIER_REGEX`
 This function get the default regex or a custom one from the `PARAMETER_REGEX` environment variable.
 
 > **note:** Both regexes should have a colon as divider between the class and the case.
+
+### isIdableQuery
+
+Check to verify if a query has placeholders that can be picked up by the idable regexes. 
 
 ### queryStringFromIdentifier
 
@@ -175,17 +184,23 @@ $result = runChain(new Chain(
 
 Most of the collection types are added to make sure the content is of a certain type.
 
+### Alias
+
+A data transfer object that holds the information to be used by the functions that use the `AliasCollection`.
+
 ### AliasCollection
 
-It is used to match aliases in the query return with identifiers.
+It is used to match aliases in the `buildAliasMap`, `buildAliasesMapCollection`, `buildLevelMap`, `createMapFromFirstLevelResults` and `createMapFromSecondLevelResults` functions.
 
-The constructor only accepts `Identifier` and `string` instances.
+The constructor only accepts `Alias` instances.
 
-It has the method:
+It has the methods:
 
-- getIdentifier: finds the matching `Identifier` instance by a string value.
+- createWithAlias: a static convenience method for `new AliasCollection()->add()`.
+- add: this method uses the `Alias` constructor arguments to create an instance. This method can return an `Error` or the instance.
+- getAlias: finds the matching `Alias` instance by a string value.
 
-It extends `TypeCollection`.
+It extends `BaseCollection`.
 
 ### BaseCollection
 
@@ -229,13 +244,15 @@ An example is `new IdableParameter(Users::Name, 'me', 1)`.
 ### IdableParameterCollection
 
 Used to add values to the parameter identifier placeholders in the query.
-`:Users:name` is replaced by me when executing the query with the collection intance, `new IdableParameterCollection(Users::Name, 'me')`.
+`:Users:name` is replaced by me when executing the query with the collection instance, 
+`IdableParameterCollection::createWithIdableParameter(Users::Name, 'me')`.
 
-The constructor accepts `IdentifierInterface`, `int`, `array`, `float` and `string` instances.
+The constructor accepts `IdableParameter` instances.
 
 It has the methods:
 
-- add: adds an `IdableParameter` instance to the collection
+- createWithIdableParameter: a static convenience for `new IdableParameterCollection()->add()` 
+- add: this uses the same arguments as the `IdableParameter` constructor to create an instance, and add it to the collection
 - findValueByIdentifierAndPlaceholder: used by the `addIdableParameters` and `collectIdableParameters` functions 
 
 Extends `BaseCollection`.
@@ -265,13 +282,9 @@ The constructor only allows `Map` instances.
 
 It has the method:
 
-- add: appends a `Map` instance to the collection.
+- addMap: appends a `Map` instance to the collection.
 
 Extends `BaseCollection`.
-
-### NativeParameterCollectionInterface
-
-The database packages have their implementation of this class for the functions to differentiate between the idable parameter and native parameter functionality.
 
 ### PlaceHolderIdentifier
 
@@ -292,17 +305,13 @@ The constructor only accepts `PlaceHolderIdentifier` instances.
 
 It has the methods:
 
-- add: appends a `PlaceHolderIdentifier` item to the collection.
+- createWithPlaceholderIdentifier: a static convenience with for `new PlaceholderIdentifier()->add()` 
+- add: uses the same arguments as the `PlaceHolderIdentifier` constructor to create an instance and add it to the collection.
 - getPlaceholderReplacements: returns a flattened array in case the placeholders in the query need to be replaced.
 - getPlaceholdersAsText: calls the `getFullPlaceholder` on every item of the collection to create a string.
 - getPlaceholderValuePairs: returns a flattened array with the placeholders and matching values
 
 Extends `BaseCollection`.
-
-### TypeCollection
-
-The base collection to be used when one type is used for the keys. 
-In this library the key for most collections is an `Identifier` instance.
 
 ## Tips
 
