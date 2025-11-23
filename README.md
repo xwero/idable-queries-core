@@ -143,9 +143,9 @@ When using a PHP version under 8.5, this function can be used to have a similar 
 $query = 'SELECT ~Users:Name, ~Users:Email FROM ~Users:Users WHERE ~Users:Id = :UsersId';
 $namespaces = new BaseNamespaceCollection('Test\Identifiers');
 $result = replaceIdentifiersInQuery($query, $namespaces)
-  |> fn($query) => replaceParametersInQuery($query, new IdableParameterCollection(Users::Id, 1), $namespaces)
-  |> fn($queryAndParameters) => someDatabaseFunction($queryAndParameters)
-  |> fn($data) => createMapFromSecondLevelResults($data, $query, namespaces: $namespaces)
+  |> (fn($query) => replaceParametersInQuery($query, new IdableParameterCollection(Users::Id, 1), $namespaces))
+  |> (fn($queryAndParameters) => someDatabaseFunction($queryAndParameters))
+  |> (fn($data) => createMapFromSecondLevelResults($data, $query, namespaces: $namespaces))
   ;
   
 // with runChain
