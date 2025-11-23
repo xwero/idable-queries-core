@@ -43,6 +43,64 @@ function addIdableParameters(
     return str_replace($search, $replacements, $query);
 }
 
+function buildAliasMap(array|Error $data, AliasCollection $aliases): Map|Error
+{
+    if ($data instanceof Error) {
+        return $data;
+    }
+
+    if (array_all(array_keys($data), fn($i) => is_string($i)) == false) {
+        return new Error(new InvalidArgumentException("The data keys for the map need to be a strings."));
+    }
+
+    if($aliases->isEmpty()) {
+        return new Error(new InvalidArgumentException("The alias collection must have items."));
+    }
+
+    $map = new Map();
+
+    foreach($data as $possibleAlias => $value) {
+        if($identifier = $aliases->getIdentifier($possibleAlias)) {
+            $map[$identifier] = $value;
+        }
+    }
+
+    return $map;
+}
+
+function buildAliasesMapCollection(array|Error $data, AliasCollection $aliases): MapCollection|Error
+{
+    if ($data instanceof Error) {
+        return $data;
+    }
+
+    if (array_all(array_keys($data), fn($item) => is_int($item)) == false) {
+        return new Error(new InvalidArgumentException("The data keys on the first level need to be integers."));
+    }
+
+    if(array_all($data, fn($item) => is_array($item)) == false) {
+        return new Error(new InvalidArgumentException("The data values need to be arrays."));
+    }
+
+    if($aliases->isEmpty()) {
+        return new Error(new InvalidArgumentException("The alias collection must have items."));
+    }
+
+    $collection = new MapCollection();
+
+    foreach($data as $mapable) {
+        $map = buildAliasMap($mapable, $aliases);
+
+        if($map instanceof Error) {
+            return $map;
+        }
+
+        $collection->add($map);
+    }
+
+    return $collection;
+}
+
 function buildLevelMap(
     array                           $data,
     PlaceHolderIdentifierCollection $placeholders,
@@ -148,6 +206,10 @@ function createMapFromSecondLevelResults(
 
     if (array_all(array_keys($data), fn($item) => is_int($item)) == false) {
         return new Error(new InvalidArgumentException("The data keys on the first level need to be integers."));
+    }
+
+    if(array_all($data, fn($item) => is_array($item)) == false) {
+        return new Error(new InvalidArgumentException("The data values need to be arrays."));
     }
 
     $placeholders = queryToPlaceholderIdentifierCollection($query, getIdentifierRegex(), $namespaces);

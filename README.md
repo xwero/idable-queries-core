@@ -56,9 +56,20 @@ This is the more dangerous version of the `collectIdableParameters` function, as
 
 Used by the database system packages.
 
+### buildAliasMap
+
+This function gives full control over the creation of a `Map` instance. The data needs to be an associate array.
+A `Map` has `Identifier` instances as keys, which makes it less likely to make typos when accessing the data.
+
+used by `buildAliasMapCollection`
+
+### buildAliasMapCollection
+
+Helper function to transform a two-dimensional data array into an array of `Map` instances.
+
 ### buildLevelMap
 
-Helper function to create a `Map` instance from an associate array. The benefit of a `Map` instance is that the keys are identifiers.
+Helper function to create a `Map` instance from an associate array.
 
 Used by `createMapFromFirstLevelResults` and `createMapFromSecondLevelResults`.
 

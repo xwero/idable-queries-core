@@ -19,4 +19,9 @@ abstract class TypeCollection
         $this->keys = array_values($keys);
         $this->values = array_values($values);
     }
+
+    public function isEmpty(): bool
+    {
+        return count($this->keys) == 0;
+    }
 }

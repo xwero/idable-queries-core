@@ -3,7 +3,7 @@
   "description": "base package for Idable queries libraries",
   "type": "library",
   "license": "mit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "autoload": {
     "psr-4": {
       "Xwero\\IdableQueriesCore\\": "src/"
