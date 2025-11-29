@@ -4,7 +4,7 @@ namespace Xwero\IdableQueriesCore;
 
 interface QueryReturnConfig
 {
-    public bool $trueOnSuccess { get; set; }
+    public bool $trueOnSuccess { get; }
 
 
 }
