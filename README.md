@@ -313,6 +313,14 @@ It has the methods:
 
 Extends `BaseCollection`.
 
+### QueryReturnConfig
+
+The interface for database specific output configuration.
+
+### Statement
+
+The interface to make the `Statement` classes consistent in the database specific packages. 
+
 ## Tips
 
 - Use the namespaces argument of the functions to prevent unexpected results because of typos or changed namespaces.
