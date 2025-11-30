@@ -50,7 +50,7 @@ test('partial mapping', function (array $data, AliasCollection $aliases) {
             'name' => 'me',
             'test' => 'not in map',
         ],
-        AliasCollection::createWithAlias('name', Users::Name),
+        AliasCollection::createWithItem('name', Users::Name),
         null,
     ],
     'values filtered by closure' => [
@@ -58,7 +58,7 @@ test('partial mapping', function (array $data, AliasCollection $aliases) {
             'name' => 'me',
             'email' => 1,
         ],
-        AliasCollection::createWithAlias('name', Users::Name)
+        AliasCollection::createWithItem('name', Users::Name)
             ->add( 'email', Users::Email, fn($i): bool => is_string($i)),
     ]
 ]);

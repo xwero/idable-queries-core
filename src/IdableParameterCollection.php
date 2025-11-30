@@ -11,7 +11,7 @@ class IdableParameterCollection extends BaseCollection
         parent::__construct($items);
     }
 
-    public static function createWithIdableParameter(Identifier $identifier, array|int|float|string $value, int $numberSuffix = 0): self
+    public static function createWithItem(Identifier $identifier, array|int|float|string $value, int $numberSuffix = 0): self
     {
         return new self()->add($identifier, $value, $numberSuffix);
     }

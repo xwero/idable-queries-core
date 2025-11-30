@@ -3,16 +3,16 @@
 use Test\Identifiers\Arr;
 use Test\Identifiers\Users;
 use Test\Identifiers\UsersBacked;
-use Xwero\IdableQueriesCore\BaseNamespaceCollection;
+use Xwero\IdableQueriesCore\NamespaceCollection;
 use Xwero\IdableQueriesCore\Error;
-use Xwero\IdableQueriesCore\PlaceholderIdentifierCollection;
+use Xwero\IdableQueriesCore\PlaceholderCollection;
 use Xwero\IdableQueriesCore\IdableParameterCollection;
 use function Xwero\IdableQueriesCore\collectIdableParameters;
 
 test('return Error', function (
-    string                       $query,
-    IdableParameterCollection    $parameters,
-    BaseNamespaceCollection|null $namespaces,
+    string                    $query,
+    IdableParameterCollection $parameters,
+    NamespaceCollection|null  $namespaces,
 ) {
     expect(collectIdableParameters($query, $parameters, $namespaces))->toBeInstanceOf(Error::class);
 })->with([
@@ -24,15 +24,15 @@ test('return Error', function (
     'bad shortened namespace' => [
         ':Users:UsersBad',
         new IdableParameterCollection()->add(Users::Users, 1),
-        new BaseNamespaceCollection('Test\Identifiers'),
+        new NamespaceCollection('Test\Identifiers'),
     ],
 ]);
 
 test ('parameters', function (
-    string                       $query,
-    IdableParameterCollection    $parameters,
-    BaseNamespaceCollection|null $namespaces,
-    array                        $result,
+    string                    $query,
+    IdableParameterCollection $parameters,
+    NamespaceCollection|null  $namespaces,
+    array                     $result,
     ) {
     $expect = collectIdableParameters($query, $parameters, $namespaces)->getPlaceholderValuePairs();
 
@@ -67,7 +67,7 @@ test('array transformer', function () {
 
    $resultArray = $result->getAll()[0]->value;
 
-   expect($result)->toBeInstanceOf(PlaceholderIdentifierCollection::class)
+   expect($result)->toBeInstanceOf(PlaceholderCollection::class)
         ->and(count($resultArray->getAll()))->toBe(2)
         ->and($resultArray->getAll()[0]->placeholder)->toBe(':Arr:Test_0')
         ->and($resultArray->getAll()[0]->value)->toBe('me')

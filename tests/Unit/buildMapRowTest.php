@@ -3,12 +3,12 @@
 use Test\Identifiers\Users;
 use Xwero\IdableQueriesCore\AliasCollection;
 use Xwero\IdableQueriesCore\Error;
-use Xwero\IdableQueriesCore\PlaceholderIdentifier;
-use Xwero\IdableQueriesCore\PlaceholderIdentifierCollection;
+use Xwero\IdableQueriesCore\Placeholder;
+use Xwero\IdableQueriesCore\PlaceholderCollection;
 use function Xwero\IdableQueriesCore\buildLevelMap;
 
 test('error', function () {
-   $map = buildLevelMap(['one'], new PlaceholderIdentifierCollection());
+   $map = buildLevelMap(['one'], new PlaceholderCollection());
 
    expect($map)->toBeInstanceOf(Error::class);
 });
@@ -16,7 +16,7 @@ test('error', function () {
 test('single item map', function () {
     $map = buildLevelMap(
         ['name' => 'John Doe'],
-        new PlaceholderIdentifierCollection(new PlaceholderIdentifier('~Users:Name', Users::Name))
+        new PlaceholderCollection(new Placeholder('~Users:Name', Users::Name))
     );
 
     expect($map)->toBeInstanceOf(SplObjectStorage::class)
@@ -27,7 +27,7 @@ test('single item map', function () {
 test('alias map', function () {
     $map = buildLevelMap(
         ['cname' => 'John Doe'],
-        new PlaceholderIdentifierCollection(new PlaceholderIdentifier('~Users:Name', Users::Name)),
+        new PlaceholderCollection(new Placeholder('~Users:Name', Users::Name)),
         new AliasCollection()->add('cname', Users::Name),
     );
 

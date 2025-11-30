@@ -11,11 +11,11 @@ test('no replacement', function (string $query, IdableParameterCollection $param
 })->with([
     'bad regex' => [
         'SELECT * FROM users WHERE name=Users:Name',
-        IdableParameterCollection::createWithIdableParameter(Users::Name, 'me'),
+        IdableParameterCollection::createWithItem(Users::Name, 'me'),
     ],
     'bad identifier' => [
         'SELECT * FROM users WHERE name=:Users:Email',
-        IdableParameterCollection::createWithIdableParameter(Users::Name, 'me')
+        IdableParameterCollection::createWithItem(Users::Name, 'me')
     ],
 ]);
 

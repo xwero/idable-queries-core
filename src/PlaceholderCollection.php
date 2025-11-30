@@ -7,14 +7,14 @@ namespace Xwero\IdableQueriesCore;
 use Closure;
 use Exception;
 
-class PlaceholderIdentifierCollection extends BaseCollection
+class PlaceholderCollection extends BaseCollection
 {
-    public function __construct(PlaceholderIdentifier ...$items)
+    public function __construct(Placeholder ...$items)
     {
         parent::__construct($items);
     }
 
-    public static function createWithPlaceholderIdentifier(
+    public static function createWithItem(
         string     $placeholder,
         Identifier $identifier,
         mixed      $value = null,
@@ -31,12 +31,12 @@ class PlaceholderIdentifierCollection extends BaseCollection
         string     $prefix = '',
         string     $suffix = '',
     ) : self {
-        $this->collection[] = new PlaceholderIdentifier($placeholder, $identifier, $value, $prefix, $suffix);
+        $this->collection[] = new Placeholder($placeholder, $identifier, $value, $prefix, $suffix);
 
         return $this;
     }
 
-    public function addPlaceholderIdentifier(PlaceholderIdentifier $phi): self
+    public function addPlaceholderIdentifier(Placeholder $phi): self
     {
         $this->collection[] = $phi;
 
@@ -44,17 +44,17 @@ class PlaceholderIdentifierCollection extends BaseCollection
     }
 
     public function getPlaceholderReplacements(
-        Closure|null $placeholderTransformer = null,
-        PlaceholderIdentifierCollection|null $collection = null,
-        string|null $placeholder = null,
+        Closure|null               $placeholderTransformer = null,
+        PlaceholderCollection|null $collection = null,
+        string|null                $placeholder = null,
     ): array
     {
         $out = [];
 
         if($placeholderTransformer instanceof Closure && is_null($collection) &&
             array_all($this->collection,
-                fn($item) => $item->value !== null && ! $item->value instanceof PlaceholderIdentifierCollection
-                    && ! $item->value instanceof PlaceholderIdentifier)
+                fn($item) => $item->value !== null && ! $item->value instanceof PlaceholderCollection
+                    && ! $item->value instanceof Placeholder)
         ) {
             foreach ($this->collection as $item) {
                 $out[$item->placeholder] = $placeholderTransformer($item->placeholder);
@@ -65,11 +65,11 @@ class PlaceholderIdentifierCollection extends BaseCollection
 
         $phis = $collection ?  $collection->getAll() : $this->collection;
 
-        $deeperLevelSuspects = array_filter($phis, fn($item) => $item->value instanceof PlaceholderIdentifierCollection || $item->value instanceof PlaceholderIdentifier);
+        $deeperLevelSuspects = array_filter($phis, fn($item) => $item->value instanceof PlaceholderCollection || $item->value instanceof Placeholder);
 
         if(count($deeperLevelSuspects) > 0) {
             foreach ($deeperLevelSuspects as $deeperLevelSuspect) {
-                if($deeperLevelSuspect->value instanceof PlaceholderIdentifierCollection) {
+                if($deeperLevelSuspect->value instanceof PlaceholderCollection) {
                     $placeholders = $deeperLevelSuspect->value->getPlaceholdersAsText($placeholderTransformer);
                     if(strlen($placeholders) > 0) {
                         $out[$deeperLevelSuspect->placeholder] = $placeholders;
@@ -77,15 +77,15 @@ class PlaceholderIdentifierCollection extends BaseCollection
                     }
                 }
 
-                if($deeperLevelSuspect->value instanceof PlaceholderIdentifier) {
-                    if($deeperLevelSuspect->value->value instanceof PlaceholderIdentifierCollection) {
+                if($deeperLevelSuspect->value instanceof Placeholder) {
+                    if($deeperLevelSuspect->value->value instanceof PlaceholderCollection) {
                         $out = array_merge($out, $this->getPlaceholderReplacements($placeholderTransformer, $deeperLevelSuspect->value->value, $deeperLevelSuspect->placeholder));
                     }
                 }
             }
         }
 
-        if($collection instanceof PlaceholderIdentifierCollection && count($deeperLevelSuspects) == 0) {
+        if($collection instanceof PlaceholderCollection && count($deeperLevelSuspects) == 0) {
             $out[$placeholder] = $collection->getPlaceholdersAsText($placeholderTransformer);
         }
 
@@ -97,7 +97,7 @@ class PlaceholderIdentifierCollection extends BaseCollection
         $out = '';
 
         if(array_all($this->collection,
-            fn($item) => $item->value instanceof PlaceholderIdentifierCollection || $item->value instanceof PlaceholderIdentifier))
+            fn($item) => $item->value instanceof PlaceholderCollection || $item->value instanceof Placeholder))
         {
             return $out;
         }
@@ -110,8 +110,8 @@ class PlaceholderIdentifierCollection extends BaseCollection
     }
 
     public function getPlaceholderValuePairs(
-        Closure|null $placeholderTransformer = null,
-        PlaceholderIdentifierCollection|null $collection = null,
+        Closure|null               $placeholderTransformer = null,
+        PlaceholderCollection|null $collection = null,
     ): array
     {
         $out = [];
@@ -120,18 +120,18 @@ class PlaceholderIdentifierCollection extends BaseCollection
         foreach ($phrs as $phr) {
             $value = $phr->value;
 
-            if($value instanceof PlaceholderIdentifierCollection) {
+            if($value instanceof PlaceholderCollection) {
                 $out = array_merge($out, $this->getPlaceholderValuePairs(collection: $value));
                 continue;
             }
 
-            if($value instanceof PlaceholderIdentifier) {
-                if($value->value instanceof PlaceholderIdentifierCollection) {
+            if($value instanceof Placeholder) {
+                if($value->value instanceof PlaceholderCollection) {
                     $out = array_merge($out, $this->getPlaceholderValuePairs(collection: $value->value));
                     continue;
                 }
 
-                if($value->value instanceof PlaceholderIdentifier) {
+                if($value->value instanceof Placeholder) {
                     $out = $this->placeholderIdentifierValueHandler($value->value, $out);
                     continue;
                 }
@@ -150,13 +150,13 @@ class PlaceholderIdentifierCollection extends BaseCollection
         return $out;
     }
 
-    private function placeholderIdentifierValueHandler(PlaceholderIdentifier $phi, array $output): mixed
+    private function placeholderIdentifierValueHandler(Placeholder $phi, array $output): mixed
     {
-        if($phi->value instanceof PlaceholderIdentifierCollection) {
+        if($phi->value instanceof PlaceholderCollection) {
             $output = array_merge($output, $this->getPlaceholderValuePairs(collection: $phi->value));
         }
 
-        if($phi->value instanceof PlaceholderIdentifier) {
+        if($phi->value instanceof Placeholder) {
             $output = $this->placeholderIdentifierValueHandler($phi->value, $output);
         }
 

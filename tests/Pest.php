@@ -1,10 +1,10 @@
 <?php
 
-use Xwero\IdableQueriesCore\BaseNamespaceCollection;
+use Xwero\IdableQueriesCore\NamespaceCollection;
 
-function getDefaultNamespace(): BaseNamespaceCollection
+function getDefaultNamespace(): NamespaceCollection
 {
-    return new BaseNamespaceCollection('Test\Identifiers');
+    return new NamespaceCollection('Test\Identifiers');
 }
 
 

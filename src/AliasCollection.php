@@ -17,7 +17,7 @@ class AliasCollection extends BaseCollection
         parent::__construct($this->getAliaskeyedArray($items));
     }
 
-    public static function createWithAlias(string $alias, Identifier $identifier, Closure|null $valueFilter = null) : Error|self
+    public static function createWithItem(string $alias, Identifier $identifier, Closure|null $valueFilter = null) : Error|self
     {
         return new self()->add($alias, $identifier, $valueFilter);
     }

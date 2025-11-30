@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Test\Identifiers\Arr;
 use Test\Identifiers\Users;
-use Xwero\IdableQueriesCore\PlaceholderIdentifierCollection;
+use Xwero\IdableQueriesCore\DirtyQuery;
 use Xwero\IdableQueriesCore\IdableParameterCollection;
 use function Xwero\IdableQueriesCore\replaceParametersInQuery;
 
@@ -15,8 +15,7 @@ test('simple identifier', function () {
        getDefaultNamespace(),
    );
 
-   expect($result->query)->toBe(':Users:Name')
-    ->and($result->parameters)->toBeInstanceOf(PlaceholderIdentifierCollection::class);
+   expect($result)->toBe(false);
 });
 
 test('custom identifier', function () {
@@ -25,8 +24,11 @@ test('custom identifier', function () {
        new IdableParameterCollection()->add(Arr::Test, [1,2]),
        getDefaultNamespace(),
    );
-   $replacements = $result->parameters->getPlaceholderReplacements();
-   $result = array_shift($replacements);
 
-   expect($result)->toBe('(:Arr:Test_0,:Arr:Test_1)');
+   expect($result)->toBeInstanceOf(DirtyQuery::class);
+
+    $replacements = $result->parameters->getPlaceholderReplacements();
+    $replacement = array_shift($replacements);
+
+   expect($replacement)->toBe('(:Arr:Test_0,:Arr:Test_1)');
 });

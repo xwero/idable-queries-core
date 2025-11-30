@@ -8,7 +8,7 @@ use Closure;
 use InvalidArgumentException;
 use ReflectionClass;
 
-final class PlaceholderIdentifier
+final class Placeholder
 {
     public function __construct(
         public readonly string     $placeholder,

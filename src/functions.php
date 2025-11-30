@@ -14,12 +14,12 @@ use InvalidArgumentException;
  * Use only if the values are validated before adding them to the query.
  */
 function addIdableParameters(
-    string                       $query,
-    IdableParameterCollection    $parameters,
-    BaseNamespaceCollection|null $namespaces = null,
+    string                    $query,
+    IdableParameterCollection $parameters,
+    NamespaceCollection|null  $namespaces = null,
 ): string|Error
 {
-    $placeholders = queryToPlaceholderIdentifierCollection($query, getParameterRegex(), $namespaces);
+    $placeholders = queryToPlaceholderCollection($query, getParameterRegex(), $namespaces);
 
     if ($placeholders instanceof Error) {
         return $placeholders;
@@ -102,9 +102,9 @@ function buildAliasesMapCollection(array|Error $data, AliasCollection|Error $ali
 }
 
 function buildLevelMap(
-    array|Error                           $data,
-    PlaceHolderIdentifierCollection $placeholders,
-    AliasCollection|Error|null            $aliases = null,
+    array|Error                $data,
+    PlaceholderCollection      $placeholders,
+    AliasCollection|Error|null $aliases = null,
 ): Map|Error
 {
     if($data instanceof Error) {
@@ -140,18 +140,18 @@ function buildLevelMap(
 }
 
 function collectIdableParameters(
-    string                       $query,
-    IdableParameterCollection    $parameters,
-    BaseNamespaceCollection|null $namespaces = null,
-): PlaceholderIdentifierCollection|Error
+    string                    $query,
+    IdableParameterCollection $parameters,
+    NamespaceCollection|null  $namespaces = null,
+): PlaceholderCollection|Error
 {
-    $placeholders = queryToPlaceholderIdentifierCollection($query, getParameterRegex(), $namespaces);
+    $placeholders = queryToPlaceholderCollection($query, getParameterRegex(), $namespaces);
 
     if ($placeholders instanceof Error) {
         return $placeholders;
     }
 
-    $placeholderReplacements = new PlaceholderIdentifierCollection();
+    $placeholderReplacements = new PlaceholderCollection();
 
     if ($placeholders->isEmpty()) {
         return $placeholderReplacements;
@@ -161,7 +161,7 @@ function collectIdableParameters(
 
     foreach ($placeholders as $item) {
         if ($value = $parameters->findValueByIdentifierAndPlaceholder($item->identifier, $item->placeholder)) {
-            $phi = new PlaceholderIdentifier($item->placeholder, $item->identifier);
+            $phi = new Placeholder($item->placeholder, $item->identifier);
             $value = $phi->getCustomValue($value);
 
             if($value instanceof Error) {
@@ -178,10 +178,10 @@ function collectIdableParameters(
 }
 
 function createMapFromFirstLevelResults(
-    array|Error                  $data,
-    string                       $query,
-    AliasCollection|Error|null         $aliases = null,
-    BaseNamespaceCollection|null $namespaces = null,
+    array|Error                $data,
+    string                     $query,
+    AliasCollection|Error|null $aliases = null,
+    NamespaceCollection|null   $namespaces = null,
 ): Map|Error
 {
     if ($data instanceof Error) {
@@ -192,7 +192,7 @@ function createMapFromFirstLevelResults(
         return $aliases;
     }
 
-    $placeholders = queryToPlaceholderIdentifierCollection($query, getIdentifierRegex(), $namespaces);
+    $placeholders = queryToPlaceholderCollection($query, getIdentifierRegex(), $namespaces);
 
     if ($placeholders instanceof Error) {
         return $placeholders;
@@ -202,10 +202,10 @@ function createMapFromFirstLevelResults(
 }
 
 function createMapFromSecondLevelResults(
-    array|Error                  $data,
-    string                       $query,
-    AliasCollection|Error|null         $aliases = null,
-    BaseNamespaceCollection|null $namespaces = null,
+    array|Error                $data,
+    string                     $query,
+    AliasCollection|Error|null $aliases = null,
+    NamespaceCollection|null   $namespaces = null,
 ): MapCollection|Error
 {
     if ($data instanceof Error) {
@@ -224,7 +224,7 @@ function createMapFromSecondLevelResults(
         return new Error(new InvalidArgumentException("The data values need to be arrays."));
     }
 
-    $placeholders = queryToPlaceholderIdentifierCollection($query, getIdentifierRegex(), $namespaces);
+    $placeholders = queryToPlaceholderCollection($query, getIdentifierRegex(), $namespaces);
 
     if ($placeholders instanceof Error) {
         return $placeholders;
@@ -325,11 +325,11 @@ function queryStringFromIdentifier(Identifier $identifier): string
     return $identifier instanceof BackedEnum ? $identifier->value : strtolower($identifier->name);
 }
 
-function queryToPlaceholderIdentifierCollection(
-    string|Error                 $query,
-    string                       $regex,
-    BaseNamespaceCollection|null $namespaces = null,
-): PlaceHolderIdentifierCollection|Error
+function queryToPlaceholderCollection(
+    string|Error             $query,
+    string                   $regex,
+    NamespaceCollection|null $namespaces = null,
+): PlaceholderCollection|Error
 {
     if($query instanceof Error) {
         return $query;
@@ -337,7 +337,7 @@ function queryToPlaceholderIdentifierCollection(
 
     preg_match_all($regex, $query, $matches);
 
-    $collection = new PlaceholderIdentifierCollection();
+    $collection = new PlaceholderCollection();
     $hasMatches = isset($matches[0]) && count($matches[0]) > 0;
 
     if ( ! $hasMatches) {
@@ -360,7 +360,7 @@ function queryToPlaceholderIdentifierCollection(
                 }
             }
 
-            if ($namespaces instanceof BaseNamespaceCollection) {
+            if ($namespaces instanceof NamespaceCollection) {
                 foreach ($namespaces->getAll() as $baseNamespace) {
                     $possibleClass = $baseNamespace . '\\' . $pair[0];
                     if (class_exists($possibleClass)) {
@@ -384,11 +384,11 @@ function queryToPlaceholderIdentifierCollection(
 }
 
 function replaceIdentifiersInQuery(
-    string                       $query,
-    BaseNamespaceCollection|null $namespaces = null,
+    string                   $query,
+    NamespaceCollection|null $namespaces = null,
 ): string|Error
 {
-    $placeholderIdentifierCollection = queryToPlaceholderIdentifierCollection($query, getIdentifierRegex(), $namespaces);
+    $placeholderIdentifierCollection = queryToPlaceholderCollection($query, getIdentifierRegex(), $namespaces);
 
     if ($placeholderIdentifierCollection instanceof Error) {
         return $placeholderIdentifierCollection;
@@ -413,11 +413,11 @@ function replaceIdentifiersInQuery(
 }
 
 function replaceParametersInQuery(
-    string                       $query,
-    IdableParameterCollection    $parameters,
-    BaseNamespaceCollection|null $namespaces = null,
-    Closure|null                 $placeholderTransformer = null
-): QueryParameterCollection|Error
+    string                    $query,
+    IdableParameterCollection $parameters,
+    NamespaceCollection|null  $namespaces = null,
+    Closure|null              $placeholderTransformer = null
+): DirtyQuery|false|Error
 {
     $placeholderCollection = collectIdableParameters($query, $parameters, $namespaces);
 
@@ -426,9 +426,14 @@ function replaceParametersInQuery(
     }
 
     $replacements = $placeholderCollection->getPlaceholderReplacements($placeholderTransformer);
+
+    if(count($replacements) == 0) {
+        return false;
+    }
+
     $query = str_replace(array_keys($replacements), $replacements, $query);
 
-    return new QueryParameterCollection($query, $placeholderCollection);
+    return new DirtyQuery($query, $placeholderCollection);
 }
 
 // Function chaining for PHP versions under 8.5

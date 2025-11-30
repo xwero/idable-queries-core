@@ -52,7 +52,7 @@ Use as much or as little as you like.
 
 This is the more dangerous version of the `collectIdableParameters` function, as it adds the values to the query without preparation.
 
-`addIdableParameters('SELECT * FROM ~Users:Users WHERE ~Users:Name = :Users:Name;', new IdableParameterCollection(User::Name, 'me'')) ` results in `SELECT * FROM ~Users:Users WHERE ~Users:Name = me`
+`addIdableParameters('SELECT * FROM ~Users:Users WHERE ~Users:Name = :Users:Name;', IdableParameterCollection::createWithItem(User::Name, 'me')) ` results in `SELECT * FROM ~Users:Users WHERE ~Users:Name = me`
 
 Used by the database system packages.
 
@@ -60,7 +60,6 @@ Used by the database system packages.
 
 This function allows full control over the creation of a `Map` instance. 
 The data needs to be an associate array.
-
 
 used by `buildAliasMapCollection`
 
@@ -105,7 +104,7 @@ This function accepts the class and case as a string and insures the return is e
 It is possible to add a number to the case in the occasion the same identifier needs to be used more than once.
 As an example `WHERE ~Users:Name = :Users:Name1 AND ~Users:Name != :Users:Name2`
 
-Used by `queryToPlaceholderIdentifierCollection`.
+Used by `queryToPlaceholderCollection`.
 
 ### getIdentifierRegex
 
@@ -127,7 +126,7 @@ Gets a backed enum value or a lower string basic enum name.
 
 Used by `buildlevelmap` and `PlaceholderReplacementCollection`.
 
-### queryToPlaceholderIdentifierCollection
+### queryToPlaceholderCollection
 
 This function extracts the strings that match the identifier regex and makes identifiers from the strings.
 
@@ -147,11 +146,13 @@ Used by the database packages.
 
 ### replaceParametersInQuery
 
-Replaces the parameter placeholders where the data isn't matched by query placeholder.
+Replaces the parameter placeholders where the data isn't matched by the query placeholders.
 `:Arr:Test` will become `(:Arr:Test_0,:Arr:Test_1)` when used in the PDO package. 
 The number of placeholders is based on the data in the `IdableParameterCollection`.
 
 A `$placeholderTransformer` closure can be added to make sure the placeholders don't contain characters the database doesn't recognize. 
+
+Returns a `DirtyQuery` instance or false when there are no query changes.
 
 Used by the database packages.
 
@@ -196,7 +197,7 @@ The constructor only accepts `Alias` instances.
 
 It has the methods:
 
-- createWithAlias: a static convenience method for `new AliasCollection()->add()`.
+- createWithItem: a static convenience method for `new AliasCollection()->add()`.
 - add: this method uses the `Alias` constructor arguments to create an instance. This method can return an `Error` or the instance.
 - getAlias: finds the matching `Alias` instance by a string value.
 
@@ -211,14 +212,6 @@ It has the methods:
 - getAll: returns array
 - isEmpty: checks the array size
 
-### BaseNamespaceCollection
-
-It is used to make the identifier placeholders in the queries shorter.
-
-The constructor only accepts `string` values.
-
-Extends `BaseCollection`.
-
 ### Chain
 
 Used to add closures to the `runChain` function.
@@ -229,14 +222,25 @@ Extends `BaseCollection`.
 
 ### CustomParameterIdentifier
 
-This is an attribute that is added to `Identifier` objects to signal to the parameter functions a single placeholder
-should be replaced with placeholders that match a data structure used by a data transformer. 
+The class attribute to add to an `identifier` to allow custom parameter transformations.
+Database specific packages have data transformer functions to add to the attribute.
+
+### DirtyQuery
+
+A DTO that is instantiated in `replaceParametersInQuery` when a query needs parameter replacements.
 
 ### Error
 
 The catch-all exception type to make it easier to let them pass through a function chain.
 
+### ExecutablePair
+
+Exposes the changed query and the placeholders that match the changed query.
+
 ### IdableParameter
+
+The name is chosen to differentiate between parameter placeholders that use `Identifier` cases, and the native language parameters.
+The latter are most of the time added as an array to the functions.
 
 To allow query placeholders with a trailing number this class is created get the value by `Identifier` and number.7
 An example is `new IdableParameter(Users::Name, 'me', 1)`.
@@ -245,13 +249,13 @@ An example is `new IdableParameter(Users::Name, 'me', 1)`.
 
 Used to add values to the parameter identifier placeholders in the query.
 `:Users:name` is replaced by me when executing the query with the collection instance, 
-`IdableParameterCollection::createWithIdableParameter(Users::Name, 'me')`.
+`IdableParameterCollection::createWithItem(Users::Name, 'me')`.
 
 The constructor accepts `IdableParameter` instances.
 
 It has the methods:
 
-- createWithIdableParameter: a static convenience for `new IdableParameterCollection()->add()` 
+- createWithItem: a static convenience for `new IdableParameterCollection()->add()` 
 - add: this uses the same arguments as the `IdableParameter` constructor to create an instance, and add it to the collection
 - findValueByIdentifierAndPlaceholder: used by the `addIdableParameters` and `collectIdableParameters` functions 
 
@@ -286,7 +290,15 @@ It has the method:
 
 Extends `BaseCollection`.
 
-### PlaceHolderIdentifier
+### NamespaceCollection
+
+It is used to make the identifier placeholders in the queries shorter.
+
+The constructor only accepts `string` values.
+
+Extends `BaseCollection`.
+
+### PlaceHolder
 
 This class binds the placeholder with the identifier, and optionally the value.
 
@@ -299,14 +311,14 @@ It has the methods:
 - getFullPlaceholder: which concatenates the `prefix`, `placeholder` and `suffix` property values.
 - getCustomValue: when the ´identifier´ value has a `CustomParameterIdentifier` attribute, this method will execute the data transformer function
 
-### PlaceHolderIdentifierCollection
+### PlaceHolderCollection
 
-The constructor only accepts `PlaceHolderIdentifier` instances.
+The constructor only accepts `PlaceHolder` instances.
 
 It has the methods:
 
-- createWithPlaceholderIdentifier: a static convenience with for `new PlaceholderIdentifier()->add()` 
-- add: uses the same arguments as the `PlaceHolderIdentifier` constructor to create an instance and add it to the collection.
+- createWithPlaceholderItem: a static convenience with for `new Placeholder()->add()` 
+- add: uses the same arguments as the `PlaceHolder` constructor to create an instance and add it to the collection.
 - getPlaceholderReplacements: returns a flattened array in case the placeholders in the query need to be replaced.
 - getPlaceholdersAsText: calls the `getFullPlaceholder` on every item of the collection to create a string.
 - getPlaceholderValuePairs: returns a flattened array with the placeholders and matching values
